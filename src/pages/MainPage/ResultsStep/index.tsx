@@ -2,19 +2,22 @@ import {memo, MouseEvent, useMemo} from 'react'
 import {Button, Card, CardContent, CardMedia, Stack, Typography} from "@mui/material";
 import {useTranslation} from "react-i18next";
 
+import {appConfig} from '../../../config'
 import {MainPageSteps} from "../steps";
 import {QuestionsType} from "../../../types/questions";
 import {CalculationResultsType} from "../../../types/results";
 import {ItemsMap} from "../../../types/items";
+import {GroupType} from "../../../types/group";
 
 interface ResultsStepProps {
   questions: QuestionsType
+  groups: GroupType[]
   itemsList: ItemsMap
   refresh(): void
   setStep(newStep: MainPageSteps): void
 }
 
-const ResultsStep = memo(({ setStep, questions, itemsList, refresh }: ResultsStepProps) => {
+const ResultsStep = memo(({ setStep, questions, itemsList, refresh, groups }: ResultsStepProps) => {
   const { t } = useTranslation()
 
   const results = useMemo((): CalculationResultsType[] => {
@@ -75,7 +78,7 @@ const ResultsStep = memo(({ setStep, questions, itemsList, refresh }: ResultsSte
   // Renders
   return (
     <Stack alignItems="stretch" gap={2}>
-      <Typography variant="h5">
+      <Typography variant="h6">
         {t('screens.main.results')}
       </Typography>
 
@@ -96,19 +99,23 @@ const ResultsStep = memo(({ setStep, questions, itemsList, refresh }: ResultsSte
               gap={2}
               justifyContent="space-between"
             >
-              {resultsGroup.items.sort((a, b) => (a.score > b.score) ? -1 : 1).slice(0, 3).map((item) => (
-                <Card key={item.name}>
-                  <CardMedia image={'/public/vite.svg'} sx={{ height: 150 }} />
+              {resultsGroup.items
+                .sort((a, b) => (a.score > b.score) ? -1 : 1)
+                .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
+                .map((item) => (
+                  <Card key={item.name}>
+                    <CardMedia image={item.img || '/public/vite.svg'} sx={{ height: 150 }} />
 
-                  <CardContent>
-                    <Typography variant="h6">{item.name}</Typography>
+                    <CardContent>
+                      <Typography variant="h6">{item.name}</Typography>
 
-                    <Typography variant="body2">{item.description || ''}</Typography>
+                      <Typography variant="body2">{item.description || ''}</Typography>
 
-                    <Typography>Score: {item.score}</Typography>
-                  </CardContent>
-                </Card>
-              ))}
+                      <Typography variant="body2">Score: {item.score}</Typography>
+                    </CardContent>
+                  </Card>
+                )
+              )}
             </Stack>
           </Stack>
         ))}

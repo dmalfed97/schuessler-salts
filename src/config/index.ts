@@ -22,4 +22,7 @@ export const appConfig = {
     default: '',
     list: {} as Record<string, string>,
   },
+
+  // Default settings
+  defaultItemsCount: 3,
 }
