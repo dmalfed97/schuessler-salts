@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useState, useCallback} from 'react'
 import {useTranslation} from "react-i18next";
 import {Stack, Typography} from "@mui/material";
 import {read, utils} from 'xlsx'
@@ -11,6 +11,7 @@ import {SheetToJSONType} from "../../types/xlsx";
 import {ItemsMap, ItemType} from "../../types/items";
 import {InfoStep} from "./InfoStep";
 import {PersonalInfoFormType} from "./InfoStep/validation";
+import {GroupType} from "../../types/group";
 
 const initialPersonalInfoFormData = () => ({
   firstName: '',
@@ -22,18 +23,20 @@ const initialPersonalInfoFormData = () => ({
 })
 
 const MainPage = () => {
-  const { t } = useTranslation()
+  const { t, i18n: { language } } = useTranslation()
 
   const [step, setStep] = useState<MainPageSteps>(MainPageSteps.INFO)
   const [questions, setQuestions] = useState<QuestionsType>(new Map())
   const [itemsList, setItemsList] = useState<ItemsMap>(new Map())
   const [stepsList, setStepsList] = useState<string[]>([])
+  const [groupsList, setGroupsList] = useState<GroupType[]>([])
   const [personalInfo, setPersonalInfo] = useState<PersonalInfoFormType>(initialPersonalInfoFormData())
 
   // Loader
-  const getInitialData = async () => {
+  const getInitialData = useCallback(async () => {
     const fetchData = async () => {
-      const response = await fetch('/xlsx/symptoms_data.xlsx')
+      const response = await fetch(`/locales/${language}/symptoms_data.xlsx`)
+
       const arrayBuffer = await response.arrayBuffer()
 
       return read(arrayBuffer, { type: 'array' })
@@ -60,7 +63,7 @@ const MainPage = () => {
           for (const key in namesArr) {
             if (namesArr[key]) {
               const obj: ItemType = restArr.reduce((acc: ItemType, item) => {
-                if (item['A'] && item[key]) {
+                if (item['A']) {
                   acc[item['A']] = item[key] || null
                 }
 
@@ -74,8 +77,38 @@ const MainPage = () => {
           setItemsList(itemsMap)
         }
 
+        // Список групп товаров
+        const groupsSheet = workbook.Sheets['groups']
+
+        if (groupsSheet) {
+          const groupsData = utils.sheet_to_json<SheetToJSONType>(groupsSheet, { header: 'A' })
+
+          if (Object.keys(groupsData[0]).length) {
+            const [namesArr, ...restArr] = groupsData
+
+            const groupsResult: GroupType[] = []
+
+            for (const key in namesArr) {
+              if (namesArr[key]) {
+                const obj = restArr.reduce((acc: GroupType, item) => {
+                  if (item['A']) {
+                    // @ts-expect-error types
+                    acc[item['A']] = item[key] || null
+                  }
+
+                  return acc
+                }, { name: String(namesArr[key]) } as GroupType)
+
+                groupsResult.push(obj)
+              }
+            }
+
+            setGroupsList(groupsResult)
+          }
+        }
+
         // Список страниц в навигации слева
-        const stepsList = workbook.SheetNames.filter((sheetName) => sheetName !== 'products')
+        const stepsList = workbook.SheetNames.filter((sheetName) => sheetName !== 'products' && sheetName !== 'groups')
 
         setStepsList(stepsList)
 
@@ -87,6 +120,7 @@ const MainPage = () => {
         // Questions Map
         const questionsData = workbook.Sheets
         delete questionsData['products']
+        delete questionsData['groups']
 
         const questionsMap: QuestionsType = new Map()
 
@@ -152,19 +186,19 @@ const MainPage = () => {
       .catch((error) => {
         alert(error)
       })
-  }
+  }, [language])
 
   // Effects
   useEffect(() => {
     void getInitialData()
-  }, [])
+  }, [getInitialData])
 
   // Handlers
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     void getInitialData()
 
     setPersonalInfo(initialPersonalInfoFormData())
-  }
+  }, [getInitialData])
 
   // Renders
   return (
@@ -196,6 +230,7 @@ const MainPage = () => {
           setStep={setStep}
           refresh={refreshData}
           questions={questions}
+          groups={groupsList}
           itemsList={itemsList}
         />
       )}
