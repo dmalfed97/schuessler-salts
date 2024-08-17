@@ -25,6 +25,7 @@ const initialPersonalInfoFormData = () => ({
 const MainPage = () => {
   const { t, i18n: { language } } = useTranslation()
 
+  const [xlsxUrl, setXlsxUrl] = useState<string | null>(null)
   const [step, setStep] = useState<MainPageSteps>(MainPageSteps.INFO)
   const [questions, setQuestions] = useState<QuestionsType>(new Map())
   const [itemsList, setItemsList] = useState<ItemsMap>(new Map())
@@ -33,9 +34,10 @@ const MainPage = () => {
   const [personalInfo, setPersonalInfo] = useState<PersonalInfoFormType>(initialPersonalInfoFormData())
 
   // Loader
-  const getInitialData = useCallback(async () => {
+  const getInitialData = useCallback(async (url: string) => {
     const fetchData = async () => {
-      const response = await fetch(`/locales/${language}/symptoms_data.xlsx`)
+      // const response = await fetch(`/locales/${language}/symptoms_data.xlsx`)
+      const response = await fetch(url)
 
       const arrayBuffer = await response.arrayBuffer()
 
@@ -190,15 +192,36 @@ const MainPage = () => {
 
   // Effects
   useEffect(() => {
-    void getInitialData()
-  }, [getInitialData])
+    const urlParams = new URLSearchParams(window.location.search);
+    const sourceUrl = urlParams.get('source');
+
+    const getSheetId = (url: string) => {
+      const match = url.match(/\/d\/(.*?)(\/|$)/);
+
+      return match ? match[1] : null;
+    }
+
+    const docID = sourceUrl ? getSheetId(sourceUrl) : null
+
+    if (docID) {
+      setXlsxUrl(`https://docs.google.com/spreadsheets/d/${docID}/export?format=xlsx`);
+    }
+  }, [])
+
+  useEffect(() => {
+    if (xlsxUrl) {
+      void getInitialData(xlsxUrl)
+    }
+  }, [getInitialData, xlsxUrl])
 
   // Handlers
   const refreshData = useCallback(() => {
-    void getInitialData()
+    if (xlsxUrl) {
+      void getInitialData(xlsxUrl)
+    }
 
     setPersonalInfo(initialPersonalInfoFormData())
-  }, [getInitialData])
+  }, [getInitialData, xlsxUrl])
 
   // Renders
   return (
