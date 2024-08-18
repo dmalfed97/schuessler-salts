@@ -22,7 +22,14 @@ const initialPersonalInfoFormData = () => ({
   dateOfBirth: '',
 })
 
-const MainPage = () => {
+interface MainPageProps {
+  initData: {
+    // eslint-ignore-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }
+}
+
+const MainPage = ({ initData }: MainPageProps) => {
   const { t, i18n: { language } } = useTranslation()
 
   const [xlsxUrl, setXlsxUrl] = useState<string | null>(null)
@@ -250,6 +257,7 @@ const MainPage = () => {
 
       {step === MainPageSteps.RESULTS && (
         <ResultsStep
+          initData={initData}
           setStep={setStep}
           refresh={refreshData}
           questions={questions}

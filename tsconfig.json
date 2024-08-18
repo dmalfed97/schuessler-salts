@@ -1,7 +1,8 @@
 {
   "files": [],
   "compilerOptions": {
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitAny": false
   },
   "references": [
     {

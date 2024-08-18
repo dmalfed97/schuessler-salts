@@ -1,4 +1,4 @@
-import {memo, MouseEvent, useMemo} from 'react'
+import {memo, MouseEvent, useMemo, useEffect, useState} from 'react'
 import {Button, Card, CardContent, CardMedia, Stack, Typography} from "@mui/material";
 import {useTranslation} from "react-i18next";
 
@@ -10,6 +10,10 @@ import {ItemsMap} from "../../../types/items";
 import {GroupType} from "../../../types/group";
 
 interface ResultsStepProps {
+  initData: {
+    // eslint-ignore-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }
   questions: QuestionsType
   groups: GroupType[]
   itemsList: ItemsMap
@@ -17,9 +21,12 @@ interface ResultsStepProps {
   setStep(newStep: MainPageSteps): void
 }
 
-const ResultsStep = memo(({ setStep, questions, itemsList, refresh, groups }: ResultsStepProps) => {
+const ResultsStep = memo(({ setStep, questions, itemsList, refresh, groups, initData }: ResultsStepProps) => {
   const { t } = useTranslation()
 
+  const [resultsAreReady, setResultsAreReady] = useState<boolean>(false)
+
+  // Helpers
   const results = useMemo((): CalculationResultsType[] => {
     const itemsResultList = [...itemsList].map(([itemName, itemData]) => ({
       name: itemName,
@@ -63,12 +70,48 @@ const ResultsStep = memo(({ setStep, questions, itemsList, refresh, groups }: Re
       }
     })
 
+    setResultsAreReady(true)
+
     return result
   }, [questions, itemsList])
+
+  // Effects
+  useEffect(() => {
+    console.log(window.parent)
+
+    if (window.parent && resultsAreReady && results.length) {
+      console.log('was called QUESTIONNAIRE_COMPLETE')
+
+      const message = {
+        type: 'QUESTIONNAIRE_COMPLETE',
+        content: {
+          paymentId: initData.paymentId,
+        },
+      }
+
+      window.parent.postMessage(message, '*')
+    }
+  }, [resultsAreReady, results, initData])
 
   // Handlers
   const refreshScoreBoard = (e: MouseEvent): void => {
     e.stopPropagation()
+
+    if (window.parent) {
+      console.log('was called NEW_QUESTIONNAIRE')
+
+      const message = {
+        type: 'NEW_QUESTIONNAIRE',
+        content: {
+          paymentId: initData.paymentId,
+          // FIXME Дописать сюда данные из формы и анкеты
+          form: {},
+          results: {},
+        },
+      }
+
+      window.parent.postMessage(message, '*')
+    }
 
     refresh()
 
