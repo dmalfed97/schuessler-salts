@@ -13,7 +13,7 @@ function App() {
 
   // Effects
   useEffect(() => {
-    if (window.parent) {
+    if (window.top !== window.self) {
       window.parent.postMessage(
         { type: 'QUESTIONNAIRE_IFRAME_READY' },
         '*',
