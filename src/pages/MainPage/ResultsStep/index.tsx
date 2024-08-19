@@ -8,6 +8,7 @@ import {QuestionsType} from "../../../types/questions";
 import {CalculationResultsType} from "../../../types/results";
 import {ItemsMap} from "../../../types/items";
 import {GroupType} from "../../../types/group";
+import {PersonalInfoFormType} from "../InfoStep/validation";
 
 interface ResultsStepProps {
   initData: {
@@ -17,11 +18,14 @@ interface ResultsStepProps {
   questions: QuestionsType
   groups: GroupType[]
   itemsList: ItemsMap
+  personalInfo: PersonalInfoFormType
   refresh(): void
   setStep(newStep: MainPageSteps): void
 }
 
-const ResultsStep = memo(({ setStep, questions, itemsList, refresh, groups, initData }: ResultsStepProps) => {
+const ResultsStep = memo(({
+  setStep, questions, itemsList, refresh, groups, initData, personalInfo,
+}: ResultsStepProps) => {
   const { t } = useTranslation()
 
   const [resultsAreReady, setResultsAreReady] = useState<boolean>(false)
@@ -77,11 +81,7 @@ const ResultsStep = memo(({ setStep, questions, itemsList, refresh, groups, init
 
   // Effects
   useEffect(() => {
-    console.log(window.parent)
-
-    if (window.parent && resultsAreReady && results.length) {
-      console.log('was called QUESTIONNAIRE_COMPLETE')
-
+    if (window.top !== window.self && resultsAreReady && results.length) {
       const message = {
         type: 'QUESTIONNAIRE_COMPLETE',
         content: {
@@ -97,16 +97,18 @@ const ResultsStep = memo(({ setStep, questions, itemsList, refresh, groups, init
   const refreshScoreBoard = (e: MouseEvent): void => {
     e.stopPropagation()
 
-    if (window.parent) {
-      console.log('was called NEW_QUESTIONNAIRE')
-
+    if (window.top !== window.self) {
       const message = {
         type: 'NEW_QUESTIONNAIRE',
         content: {
-          paymentId: initData.paymentId,
-          // FIXME Дописать сюда данные из формы и анкеты
-          form: {},
-          results: {},
+          paymentId: initData.paymentId || '',
+          form: { ...personalInfo },
+          results: results.map((resultsGroup) => ({
+            ...resultsGroup,
+            items: resultsGroup.items
+              .sort((a, b) => (a.score > b.score) ? -1 : 1)
+              .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
+          })) as CalculationResultsType[],
         },
       }
 

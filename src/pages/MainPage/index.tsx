@@ -263,6 +263,7 @@ const MainPage = ({ initData }: MainPageProps) => {
           questions={questions}
           groups={groupsList}
           itemsList={itemsList}
+          personalInfo={personalInfo}
         />
       )}
     </Stack>
