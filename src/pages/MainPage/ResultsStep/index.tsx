@@ -81,7 +81,7 @@ const ResultsStep = memo(({
 
   // Effects
   useEffect(() => {
-    if (window.top !== window.self && resultsAreReady && results.length) {
+    if (resultsAreReady && results.length) {
       const message = {
         type: 'QUESTIONNAIRE_COMPLETE',
         content: {
@@ -97,23 +97,20 @@ const ResultsStep = memo(({
   const refreshScoreBoard = (e: MouseEvent): void => {
     e.stopPropagation()
 
-    if (window.top !== window.self) {
-      const message = {
-        type: 'NEW_QUESTIONNAIRE',
-        content: {
-          paymentId: initData.paymentId || '',
-          form: { ...personalInfo },
-          results: results.map((resultsGroup) => ({
-            ...resultsGroup,
-            items: resultsGroup.items
-              .sort((a, b) => (a.score > b.score) ? -1 : 1)
-              .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
-          })) as CalculationResultsType[],
-        },
-      }
-
-      window.parent.postMessage(message, '*')
+    const message = {
+      type: 'NEW_QUESTIONNAIRE',
+      content: {
+        paymentId: initData.paymentId || '',
+        form: { ...personalInfo },
+        results: results.map((resultsGroup) => ({
+          ...resultsGroup,
+          items: resultsGroup.items
+            .sort((a, b) => (a.score > b.score) ? -1 : 1)
+            .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
+        })) as CalculationResultsType[],
+      },
     }
+    window.parent.postMessage(message, '*')
 
     refresh()
 
