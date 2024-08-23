@@ -34,9 +34,9 @@ function App() {
   }, [])
 
   // Renders
-  if (!dataFromParent) {
-    return <div>payment required</div>
-  }
+  // if (!dataFromParent) {
+  //   return <div>payment required</div>
+  // }
   return (
     <I18NextProvider>
       <ThemeProvider theme={theme}>

@@ -81,17 +81,24 @@ const ResultsStep = memo(({
 
   // Effects
   useEffect(() => {
-    if (resultsAreReady && results.length) {
+    if (resultsAreReady && results.length && personalInfo.email) {
       const message = {
         type: 'QUESTIONNAIRE_COMPLETE',
         content: {
-          paymentId: initData.paymentId,
+          paymentId: initData.paymentId || '',
+          form: { ...personalInfo },
+          results: results.map((resultsGroup) => ({
+            ...resultsGroup,
+            items: resultsGroup.items
+              .sort((a, b) => (a.score > b.score) ? -1 : 1)
+              .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
+          })) as CalculationResultsType[],
         },
       }
 
       window.parent.postMessage(message, '*')
     }
-  }, [resultsAreReady, results, initData])
+  }, [resultsAreReady, results, initData, personalInfo, groups])
 
   // Handlers
   const refreshScoreBoard = (e: MouseEvent): void => {
@@ -101,13 +108,6 @@ const ResultsStep = memo(({
       type: 'NEW_QUESTIONNAIRE',
       content: {
         paymentId: initData.paymentId || '',
-        form: { ...personalInfo },
-        results: results.map((resultsGroup) => ({
-          ...resultsGroup,
-          items: resultsGroup.items
-            .sort((a, b) => (a.score > b.score) ? -1 : 1)
-            .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
-        })) as CalculationResultsType[],
       },
     }
     window.parent.postMessage(message, '*')

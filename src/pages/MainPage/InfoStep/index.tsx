@@ -87,10 +87,16 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo }: InfoStepProps
               label={t('input.label.phone')}
               name="phone"
               hookFormProps={{control}}
-              required
+              mask="+7 (999) 999-99-99"
             />
 
-            {/*<p>Поле с датой рождения</p>*/}
+            <TextFieldWithController
+              label={t('input.label.dateOfBirth')}
+              name="dateOfBirth"
+              hookFormProps={{control}}
+              type="date"
+              // InputLabelProps={{ shrink: true }}
+            />
           </Stack>
 
           <Stack direction="row" justifyContent="flex-end">
