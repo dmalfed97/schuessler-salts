@@ -4,11 +4,12 @@ import {useTranslation} from "react-i18next";
 
 import {appConfig} from '../../../config'
 import {MainPageSteps} from "../steps";
-import {QuestionsType} from "../../../types/questions";
+import {BlockMapType, QuestionsType} from "../../../types/questions";
 import {CalculationResultsType} from "../../../types/results";
 import {ItemsMap} from "../../../types/items";
 import {GroupType} from "../../../types/group";
 import {PersonalInfoFormType} from "../InfoStep/validation";
+import {getZodiacSign} from "../../../utils/_getZodiacSign";
 
 interface ResultsStepProps {
   initData: {
@@ -39,6 +40,22 @@ const ResultsStep = memo(({
       group: String(itemData.group),
       score: 0,
     }))
+
+    const zodiacStep = questions.get('zodiac')
+
+    if (zodiacStep) {
+      const zodiacBlock: IteratorResult<BlockMapType, BlockMapType> = zodiacStep.blocks.values().next()
+
+      if (zodiacBlock) {
+        const zodiacSign = getZodiacSign(new Date(personalInfo.dateOfBirth))
+
+        const bufferBlockValue = zodiacBlock.value.questions.get(zodiacSign)
+
+        if (bufferBlockValue) {
+          zodiacBlock.value.questions.set(zodiacSign, { ...bufferBlockValue, answer: true })
+        }
+      }
+    }
 
     itemsResultList.forEach((resultItem) => {
       questions.forEach((step) => {
@@ -77,7 +94,7 @@ const ResultsStep = memo(({
     setResultsAreReady(true)
 
     return result
-  }, [questions, itemsList])
+  }, [questions, itemsList, personalInfo])
 
   // Effects
   useEffect(() => {
@@ -85,7 +102,7 @@ const ResultsStep = memo(({
       const message = {
         type: 'QUESTIONNAIRE_COMPLETE',
         content: {
-          paymentId: initData.paymentId || '',
+          paymentId: initData?.paymentId || '',
           form: { ...personalInfo },
           results: results.map((resultsGroup) => ({
             ...resultsGroup,
@@ -107,7 +124,7 @@ const ResultsStep = memo(({
     const message = {
       type: 'NEW_QUESTIONNAIRE',
       content: {
-        paymentId: initData.paymentId || '',
+        paymentId: initData?.paymentId || '',
       },
     }
     window.parent.postMessage(message, '*')

@@ -117,7 +117,11 @@ const MainPage = ({ initData }: MainPageProps) => {
         }
 
         // Список страниц в навигации слева
-        const stepsList = workbook.SheetNames.filter((sheetName) => sheetName !== 'products' && sheetName !== 'groups')
+        const stepsList = workbook.SheetNames.filter((sheetName) =>
+          sheetName !== 'products'
+          && sheetName !== 'groups'
+          && sheetName !== 'zodiac'
+        )
 
         setStepsList(stepsList)
 

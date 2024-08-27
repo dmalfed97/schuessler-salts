@@ -14,7 +14,7 @@ export const PersonalInfoValidationSchema = Yup.object({
 
       return phoneRegExp.test(value)
     }),
-  dateOfBirth: Yup.string()
+  dateOfBirth: Yup.string().required('error.requiredField')
     .test('is-valid-date', 'error.incorrectDate', (value) => {
       if (!value) return true;
 

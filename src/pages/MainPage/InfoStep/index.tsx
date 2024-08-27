@@ -95,6 +95,7 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo }: InfoStepProps
               name="dateOfBirth"
               hookFormProps={{control}}
               type="date"
+              required
               // InputLabelProps={{ shrink: true }}
             />
           </Stack>
