@@ -20,7 +20,7 @@ const StepsSideList = memo(({
   const { palette } = useTheme()
 
   // Handlers
-  const toOtherQuestionsBlock = (e: MouseEvent, step: string) => {
+  const toOtherQuestionsBlock = (step: string) => (e: MouseEvent) => {
     e.stopPropagation()
 
     setActiveBlockIndex(step)
@@ -37,19 +37,23 @@ const StepsSideList = memo(({
             color: 'white'
           } : {}}
         >
-          <ListItemText>{t('button.personalInfo')}</ListItemText>
+          <ListItemText sx={{ '> span': { fontSize: '1rem' }}}>
+            {t('button.personalInfo')}
+          </ListItemText>
         </ListItemButton>
 
         {stepsList.map((step) => (
           <ListItemButton
             key={step}
-            onClick={(e) => toOtherQuestionsBlock(e, step)}
+            onClick={toOtherQuestionsBlock(step)}
             style={step === activeBlockIndex ? {
               backgroundColor: palette.primary.light,
               color: 'white',
             } : {}}
           >
-            <ListItemText>{step}</ListItemText>
+            <ListItemText sx={{ '> span': { fontSize: '1rem' }}}>
+              {step}
+            </ListItemText>
           </ListItemButton>
         ))}
       </List>

@@ -1,6 +1,19 @@
 import {memo, MouseEvent, useMemo, useEffect, useState} from 'react'
-import {Button, Card, CardContent, CardMedia, Stack, Typography} from "@mui/material";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  Stack,
+  Typography,
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {useTranslation} from "react-i18next";
+import {makeStyles} from "tss-react/mui";
 
 import {appConfig} from '../../../config'
 import {MainPageSteps} from "../steps";
@@ -10,6 +23,7 @@ import {ItemsMap} from "../../../types/items";
 import {GroupType} from "../../../types/group";
 import {PersonalInfoFormType} from "../InfoStep/validation";
 import {getZodiacSign} from "../../../utils/_getZodiacSign";
+import {calculateAge} from "../../../utils/_getAge";
 
 interface ResultsStepProps {
   initData: {
@@ -29,6 +43,8 @@ const ResultsStep = memo(({
 }: ResultsStepProps) => {
   const { t } = useTranslation()
 
+  const { classes } = useStyles()
+
   const [resultsAreReady, setResultsAreReady] = useState<boolean>(false)
 
   // Helpers
@@ -37,6 +53,12 @@ const ResultsStep = memo(({
       name: itemName,
       img: itemData.img ? String(itemData.img) : null,
       description: itemData.description ? String(itemData.description) : null,
+      long_description: itemData.long_description ? String(itemData.long_description) : null,
+      composition: itemData.composition ? String(itemData.composition) : null,
+      prescription_14: itemData.prescription_14 ? String(itemData.prescription_14) : null,
+      prescription_8: itemData.prescription_8 ? String(itemData.prescription_8) : null,
+      prescription_2: itemData.prescription_2 ? String(itemData.prescription_2) : null,
+      prescription_0: itemData.prescription_0 ? String(itemData.prescription_0) : null,
       group: String(itemData.group),
       score: 0,
     }))
@@ -99,10 +121,18 @@ const ResultsStep = memo(({
   // Effects
   useEffect(() => {
     if (resultsAreReady && results.length && personalInfo.email) {
+      const age = calculateAge(personalInfo.dateOfBirth)
+      const generalText = age > 14 ? t(`prescriptions.14+`)
+        : age > 8 ? t(`prescriptions.8-14`)
+          : age > 2 ? t(`prescriptions.2-8`)
+            : t(`prescriptions.0-2`)
+
       const message = {
         type: 'QUESTIONNAIRE_COMPLETE',
         content: {
           paymentId: initData?.paymentId || '',
+          age,
+          prescription: generalText,
           form: { ...personalInfo },
           results: results.map((resultsGroup) => ({
             ...resultsGroup,
@@ -115,7 +145,7 @@ const ResultsStep = memo(({
 
       window.parent.postMessage(message, '*')
     }
-  }, [resultsAreReady, results, initData, personalInfo, groups])
+  }, [resultsAreReady, results, initData, personalInfo, groups, t])
 
   // Handlers
   const refreshScoreBoard = (e: MouseEvent): void => {
@@ -135,49 +165,105 @@ const ResultsStep = memo(({
   }
 
   // Renders
-  return (
-    <Stack alignItems="stretch" gap={2}>
-      <Typography variant="h6">
-        {t('screens.main.results')}
-      </Typography>
+  const renderResults = useMemo(() => {
+    return results.map((resultsGroup) => (
+      <Stack
+        key={resultsGroup.group}
+        borderBottom="1px solid lightgray"
+        paddingBottom={2}
+        gap={1}
+      >
+        <Typography variant="subtitle1" fontWeight={600}>
+          {t('word.group')}: {resultsGroup.group}
+        </Typography>
 
-      <Stack gap={2.5}>
-        {results.map((resultsGroup) => (
-          <Stack
-            key={resultsGroup.group}
-            borderBottom="1px solid lightgray"
-            paddingBottom={2}
-            gap={1}
-          >
-            <Typography variant="subtitle1" fontWeight={600}>
-              {t('word.group')}: {resultsGroup.group}
-            </Typography>
+        {resultsGroup.items
+          .sort((a, b) => (a.score > b.score) ? -1 : 1)
+          .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
+          .map((item) => (
+              <Card key={item.name}>
+                <CardMedia image={"/public/1.jpg"} sx={{ height: 150, backgroundSize: 'contain' }} />
 
-            <Stack
-              direction="row"
-              gap={2}
-              justifyContent="space-between"
-            >
-              {resultsGroup.items
+                <CardContent>
+                  <Typography variant="h6">{`${t('word.salt')}: ${item.name}`}</Typography>
+
+                  <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>{item.description || ''}</Typography>
+
+                  {/*<Typography variant="body2">Score: {item.score}</Typography>*/}
+                </CardContent>
+              </Card>
+            )
+          )}
+      </Stack>
+    ))
+  }, [groups, results, t])
+
+  const renderPrescriptionBlock = useMemo(() => {
+    const age = calculateAge(personalInfo.dateOfBirth)
+    const generalText = age > 14 ? t(`prescriptions.14+`)
+      : age > 8 ? t(`prescriptions.8-14`)
+        : age > 2 ? t(`prescriptions.2-8`)
+          : t(`prescriptions.0-2`)
+
+    const prescriptionKey = age > 14 ? 'prescription_14'
+      : age > 8 ? 'prescription_8'
+        : age > 2 ? 'prescription_2'
+          : 'prescription_0'
+
+    return (
+      <Stack gap={1}>
+        <Accordion
+          disableGutters
+          elevation={0}
+          square
+          slotProps={{ transition: { unmountOnExit: true } }}
+          defaultExpanded={false}
+          className={classes.accordion}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} className={classes.summary}>
+            <Typography variant="body1">{t('word.howToUse')}</Typography>
+          </AccordionSummary>
+
+          <AccordionDetails className={classes.details}>
+            <Stack gap={0.5}>
+              <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>
+                {generalText}
+              </Typography>
+
+              {results.map((resultsGroup) => resultsGroup.items
                 .sort((a, b) => (a.score > b.score) ? -1 : 1)
                 .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
                 .map((item) => (
-                  <Card key={item.name}>
-                    <CardMedia image={item.img || '/public/vite.svg'} sx={{ height: 150 }} />
-
-                    <CardContent>
-                      <Typography variant="h6">{item.name}</Typography>
-
-                      <Typography variant="body2">{item.description || ''}</Typography>
-
-                      <Typography variant="body2">Score: {item.score}</Typography>
-                    </CardContent>
-                  </Card>
-                )
+                  <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>
+                    {item[prescriptionKey] || ''}
+                  </Typography>
+                ))
               )}
             </Stack>
-          </Stack>
-        ))}
+          </AccordionDetails>
+        </Accordion>
+      </Stack>
+    )
+  }, [personalInfo.dateOfBirth, classes.accordion, classes.summary, classes.details, t, results, groups])
+
+  return (
+    <Stack alignItems="stretch" gap={2}>
+      <Typography variant="h5" textAlign="center">
+        {t('screens.main.results')}
+      </Typography>
+
+      <Alert variant="outlined" severity="error" style={{ fontSize: 18 }}>
+        {t('disclaimer')}
+      </Alert>
+
+      <Stack gap={2}>
+        <Typography variant="h6">
+          {t('word.yourResult')}
+        </Typography>
+
+        {renderResults}
+
+        {renderPrescriptionBlock}
       </Stack>
 
       <Stack direction="row" justifyContent="flex-end">
@@ -188,5 +274,23 @@ const ResultsStep = memo(({
     </Stack>
   )
 })
+
+const useStyles = makeStyles()((theme) => ({
+  accordion: {
+    '&:not(:last-child)': {
+      borderBottom: 0,
+    },
+    '&::before': {
+      display: 'none',
+    }
+  },
+  summary: {
+    flexDirection: 'row-reverse',
+  },
+  details: {
+    padding: theme.spacing(2),
+    borderTop: '1px solid rgba(0, 0, 0, .125)',
+  }
+}))
 
 export { ResultsStep }
