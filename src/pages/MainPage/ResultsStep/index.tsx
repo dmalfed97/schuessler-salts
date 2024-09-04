@@ -10,6 +10,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Paper,
+  Link,
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {useTranslation} from "react-i18next";
@@ -185,7 +187,7 @@ const ResultsStep = memo(({
                 <CardMedia image={"/public/1.jpg"} sx={{ height: 150, backgroundSize: 'contain' }} />
 
                 <CardContent>
-                  <Typography variant="h6">{`${t('word.salt')}: ${item.name}`}</Typography>
+                  <Typography variant="subtitle1">{`${t('word.salt')}: ${item.name}`}</Typography>
 
                   <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>{item.description || ''}</Typography>
 
@@ -221,11 +223,11 @@ const ResultsStep = memo(({
           className={classes.accordion}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />} className={classes.summary}>
-            <Typography variant="body1">{t('word.howToUse')}</Typography>
+            <Typography variant="h6">{t('word.howToUse')}</Typography>
           </AccordionSummary>
 
           <AccordionDetails className={classes.details}>
-            <Stack gap={0.5}>
+            <Stack gap={2}>
               <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>
                 {generalText}
               </Typography>
@@ -246,6 +248,31 @@ const ResultsStep = memo(({
     )
   }, [personalInfo.dateOfBirth, classes.accordion, classes.summary, classes.details, t, results, groups])
 
+  const renderContactBlock = useMemo(() => {
+    return (
+      <Paper component={Stack} gap={1} sx={{ padding: 2 }}>
+        <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>
+          {t('contactData.resultIsSent')}
+        </Typography>
+
+        <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
+          <b>{t('contactData.site')}</b>
+          <Link href={`http://${t('contactData.siteUrl')}`}>{t('contactData.siteUrl')}</Link>
+        </Typography>
+
+        <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
+          <b>{t('contactData.phone')}</b>
+          <Link href={`tel:${t('contactData.phoneNumber')}`}>{t('contactData.phoneNumber')}</Link>
+        </Typography>
+
+        <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
+          <b>{t('contactData.email')}</b>
+          <Link href={`mailto:${t('contactData.emailValue')}`}>{t('contactData.emailValue')}</Link>
+        </Typography>
+      </Paper>
+    )
+  }, [t])
+
   return (
     <Stack alignItems="stretch" gap={2}>
       <Typography variant="h5" textAlign="center">
@@ -264,6 +291,8 @@ const ResultsStep = memo(({
         {renderResults}
 
         {renderPrescriptionBlock}
+
+        {renderContactBlock}
       </Stack>
 
       <Stack direction="row" justifyContent="flex-end">
