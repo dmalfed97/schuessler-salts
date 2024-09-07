@@ -42,7 +42,7 @@ export const theme = createTheme({
     },
     MuiButton: {
       defaultProps: {
-        size: 'medium',
+        size: 'large',
         disableElevation: true,
         disableRipple: true,
       },

@@ -1,19 +1,18 @@
 import {ChangeEvent, memo, useCallback} from 'react'
 import {
-  Accordion, AccordionDetails,
+  Accordion,
+  AccordionDetails,
   AccordionSummary,
-  FormControl,
+  Checkbox,
   FormControlLabel,
-  FormLabel, Paper,
-  Radio,
-  RadioGroup,
+  FormGroup,
+  Paper,
   Stack,
   Typography
 } from "@mui/material";
-import {useTranslation} from "react-i18next";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {makeStyles} from "tss-react/mui";
 
-import {ValueOption} from "../../../../types/valueOption";
 import {QuestionMapType, StepMapType} from "../../../../types/questions";
 
 interface QuestionsStepProps {
@@ -24,13 +23,11 @@ interface QuestionsStepProps {
 const QuestionsStep = memo(({
   activeBlock, setActiveBlock,
 }: QuestionsStepProps) => {
-  const { t } = useTranslation()
-
   const { classes } = useStyles()
 
   // Handlers
   const selectOption = useCallback((e: ChangeEvent<HTMLInputElement>, blockName: string, question: string) => {
-    const { value } = e.target
+    const { checked } = e.target
 
     const newActiveBlock = structuredClone(activeBlock)
 
@@ -39,7 +36,7 @@ const QuestionsStep = memo(({
     if (answeredQuestion) {
       newActiveBlock.blocks.get(blockName)?.questions.set(
         question,
-        {...answeredQuestion, answer: value === 'true'},
+        {...answeredQuestion, answer: checked},
       )
 
       setActiveBlock(newActiveBlock)
@@ -48,34 +45,18 @@ const QuestionsStep = memo(({
 
   // Renders
   const renderQuestion = useCallback((question: string, questionData: QuestionMapType, blockName: string) => (
-    <Stack key={question}>
-      <FormControl>
-        <FormLabel id={question}>
-          {question}
-        </FormLabel>
-
-        <RadioGroup
-          aria-labelledby={question}
-          name={question}
-          row
-          value={questionData.answer}
-          onChange={(e) => selectOption(e, blockName, question)}
-        >
-          <FormControlLabel
-            value={true}
-            control={<Radio size="small" />}
-            label={t(`radio.value.${ValueOption.YES}`)}
+    <FormGroup key={question}>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={!!questionData.answer}
+            onChange={(e) => selectOption(e, blockName, question)}
           />
-
-          <FormControlLabel
-            value={false}
-            control={<Radio size="small" />}
-            label={t(`radio.value.${ValueOption.NO}`)}
-          />
-        </RadioGroup>
-      </FormControl>
-    </Stack>
-  ), [selectOption, t])
+        }
+        label={question}
+      />
+    </FormGroup>
+  ), [selectOption])
 
   return (
     <Stack gap={1}>
@@ -95,7 +76,7 @@ const QuestionsStep = memo(({
           defaultExpanded
           className={classes.accordion}
         >
-          <AccordionSummary className={classes.summary}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} className={classes.summary}>
             <Typography>{blockName}</Typography>
           </AccordionSummary>
 

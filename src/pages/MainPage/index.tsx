@@ -1,6 +1,6 @@
 import {useEffect, useState, useCallback} from 'react'
 import {useTranslation} from "react-i18next";
-import {Stack, Typography} from "@mui/material";
+import {Stack} from "@mui/material";
 import {read, utils} from 'xlsx'
 
 import {MainPageSteps} from "./steps";
@@ -30,7 +30,7 @@ interface MainPageProps {
 }
 
 const MainPage = ({ initData }: MainPageProps) => {
-  const { t, i18n: { language } } = useTranslation()
+  const { i18n: { language } } = useTranslation()
 
   const [xlsxUrl, setXlsxUrl] = useState<string | null>(null)
   const [step, setStep] = useState<MainPageSteps>(MainPageSteps.INFO)
@@ -117,7 +117,11 @@ const MainPage = ({ initData }: MainPageProps) => {
         }
 
         // Список страниц в навигации слева
-        const stepsList = workbook.SheetNames.filter((sheetName) => sheetName !== 'products' && sheetName !== 'groups')
+        const stepsList = workbook.SheetNames.filter((sheetName) =>
+          sheetName !== 'products'
+          && sheetName !== 'groups'
+          && sheetName !== 'zodiac'
+        )
 
         setStepsList(stepsList)
 
@@ -233,10 +237,6 @@ const MainPage = ({ initData }: MainPageProps) => {
   // Renders
   return (
     <Stack alignItems="stretch" gap={1.5}>
-      <Typography variant="h4" fontSize={28} px={2}>
-        {t('screens.main.title')}
-      </Typography>
-
       {step === MainPageSteps.INFO && (
         <InfoStep
           personalInfo={personalInfo}

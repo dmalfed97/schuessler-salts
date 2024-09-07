@@ -26,7 +26,7 @@ const useStyles = makeStyles()(() => ({
     paddingTop: 30,
     paddingBottom: 30,
     '> div': {
-      maxWidth: 992,
+      maxWidth: 1208 + 48,
     }
   },
 }))

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import type { UseWatchProps, FieldPath, FieldValues, ControllerFieldState } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import MaskedInput from 'react-input-mask'
 
 import { useStyles } from './index.styled'
 
@@ -13,6 +14,8 @@ interface TextFieldWithControllerProps<T extends FieldValues>
   hookFormProps: Omit<UseWatchProps<T>, 'name' | 'render' | 'defaultValue'>
   trimWhiteSpaces?: boolean
   variant?: TextFieldVariants
+  mask?: string
+  maskChar?: string
 }
 
 /**
@@ -22,12 +25,16 @@ interface TextFieldWithControllerProps<T extends FieldValues>
  * @param trimWhiteSpaces - флаг для чистки поля при onChange от пробелов
  * @param variant
  * @param rest - наследуются от TextFieldProps
+ * @param mask - маска ввода
+ * @param maskChar - символ, заполняющий пустые значения в маске
  */
 const TextFieldWithController = function <T extends FieldValues>({
   name,
   hookFormProps,
   trimWhiteSpaces,
   variant = 'outlined',
+  mask,
+  maskChar = ' ',
   ...rest
 }: TextFieldWithControllerProps<T>) {
   const { t } = useTranslation()
@@ -46,6 +53,36 @@ const TextFieldWithController = function <T extends FieldValues>({
   }
 
   // Renders
+  if (mask) {
+    return (
+      <Controller
+        name={name}
+        render={({ field, fieldState }) => (
+          <MaskedInput
+            mask={mask}
+            maskChar={maskChar}
+            value={field.value}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+          >
+            {() => (
+              <TextField
+                className={classes.textField}
+                inputRef={field.ref}
+                variant={variant}
+                {...field}
+                {...rest}
+                error={!!fieldState.error?.message || rest.error}
+                helperText={getHelperText(fieldState)}
+                ref={null}
+              />
+            )}
+          </MaskedInput>
+        )}
+        {...hookFormProps}
+      />
+    )
+  }
   return (
     <Controller
       name={name}

@@ -45,62 +45,75 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo }: InfoStepProps
 
   // Renders
   return (
-    <FormProvider {...methods}>
-      <Paper square style={{ padding: '12px 16px' }}>
-        <Stack
-          gap={2}
-          component="form"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <Typography>
-            {t('screens.main.greeting')}
-          </Typography>
+    <>
+      <Typography variant="h4" fontSize={26} px={2}>
+        {t('screens.main.title')}
+      </Typography>
 
-          <Stack gap={1}>
-            <TextFieldWithController
-              label={t('input.label.firstName')}
-              name="firstName"
-              hookFormProps={{control}}
-              required
-            />
+      <FormProvider {...methods}>
+        <Paper square style={{ padding: '12px 16px' }}>
+          <Stack
+            gap={2}
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <Typography>
+              {t('screens.main.greeting')}
+            </Typography>
 
-            <TextFieldWithController
-              label={t('input.label.secondName')}
-              name="secondName"
-              hookFormProps={{control}}
-            />
+            <Stack gap={1}>
+              <TextFieldWithController
+                label={t('input.label.firstName')}
+                name="firstName"
+                hookFormProps={{control}}
+                required
+              />
 
-            <TextFieldWithController
-              label={t('input.label.lastName')}
-              name="lastName"
-              hookFormProps={{control}}
-            />
+              <TextFieldWithController
+                label={t('input.label.secondName')}
+                name="secondName"
+                hookFormProps={{control}}
+              />
 
-            <TextFieldWithController
-              label={t('input.label.email')}
-              name="email"
-              hookFormProps={{control}}
-              required
-            />
+              <TextFieldWithController
+                label={t('input.label.lastName')}
+                name="lastName"
+                hookFormProps={{control}}
+                required
+              />
 
-            <TextFieldWithController
-              label={t('input.label.phone')}
-              name="phone"
-              hookFormProps={{control}}
-              required
-            />
+              <TextFieldWithController
+                label={t('input.label.email')}
+                name="email"
+                hookFormProps={{control}}
+                required
+              />
 
-            {/*<p>Поле с датой рождения</p>*/}
+              <TextFieldWithController
+                label={t('input.label.phone')}
+                name="phone"
+                hookFormProps={{control}}
+                mask="+7 (999) 999-99-99"
+              />
+
+              <TextFieldWithController
+                label={t('input.label.dateOfBirth')}
+                name="dateOfBirth"
+                hookFormProps={{control}}
+                type="date"
+                required
+              />
+            </Stack>
+
+            <Stack direction="row" justifyContent="flex-end">
+              <Button variant="contained" type="submit">
+                {t('button.continue')}
+              </Button>
+            </Stack>
           </Stack>
-
-          <Stack direction="row" justifyContent="flex-end">
-            <Button variant="contained" type="submit">
-              {t('button.continue')}
-            </Button>
-          </Stack>
-        </Stack>
-      </Paper>
-    </FormProvider>
+        </Paper>
+      </FormProvider>
+    </>
   )
 })
 

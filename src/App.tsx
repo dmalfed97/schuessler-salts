@@ -13,12 +13,10 @@ function App() {
 
   // Effects
   useEffect(() => {
-    if (window.top !== window.self) {
-      window.parent.postMessage(
-        { type: 'QUESTIONNAIRE_IFRAME_READY' },
-        '*',
-      );
-    }
+    window.parent.postMessage(
+      { type: 'QUESTIONNAIRE_IFRAME_READY' },
+      '*',
+    );
 
     const listener = (event: MessageEvent) => {
       if (event.data.type === 'INITIAL_PAYLOAD') {
@@ -37,7 +35,7 @@ function App() {
 
   // Renders
   if (!dataFromParent) {
-    return null
+    return <div>Insecure access attempt</div>
   }
   return (
     <I18NextProvider>
