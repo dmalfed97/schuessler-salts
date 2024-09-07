@@ -169,31 +169,22 @@ const ResultsStep = memo(({
   // Renders
   const renderResults = useMemo(() => {
     return results.map((resultsGroup) => (
-      <Stack
-        key={resultsGroup.group}
-        borderBottom="1px solid lightgray"
-        paddingBottom={2}
-        gap={1}
-      >
-        <Typography variant="subtitle1" fontWeight={600}>
-          {t('word.group')}: {resultsGroup.group}
-        </Typography>
-
+      <Stack key={resultsGroup.group} gap={1}>
         {resultsGroup.items
           .sort((a, b) => (a.score > b.score) ? -1 : 1)
           .slice(0, groups.find((group) => group.name === resultsGroup.group)?.count || appConfig.defaultItemsCount)
           .map((item) => (
-              <Card key={item.name}>
-                <CardMedia image={"/public/1.jpg"} sx={{ height: 150, backgroundSize: 'contain' }} />
+            <Card key={item.name}>
+              <CardMedia image={item.img!} sx={{ height: 150, backgroundSize: 'contain' }} />
 
-                <CardContent>
-                  <Typography variant="subtitle1">{`${t('word.salt')}: ${item.name}`}</Typography>
+              <CardContent>
+                <Typography variant="subtitle1">{`${t('word.salt')}: ${item.name}`}</Typography>
 
-                  <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>{item.description || ''}</Typography>
+                <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>{item.description || ''}</Typography>
 
-                  {/*<Typography variant="body2">Score: {item.score}</Typography>*/}
-                </CardContent>
-              </Card>
+                {/*<Typography variant="body2">Score: {item.score}</Typography>*/}
+              </CardContent>
+            </Card>
             )
           )}
       </Stack>
