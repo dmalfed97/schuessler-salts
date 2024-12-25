@@ -1,42 +1,58 @@
 import {CssBaseline, ThemeProvider} from "@mui/material";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 
 import {I18NextProvider} from "./providers/I18Next";
 import {GlobalErrorBoundaryProvider} from "./providers/GlobalErrorBoundary";
 import {CommonLayout} from "./layouts/CommonLayout";
 import {theme} from "./styles/muiTheme";
 import {MainPage} from './pages/MainPage'
+import {OrderData} from "./types/orderData";
+import {appConfig} from "./config";
+import {InitialOrderResponse} from "./types/wpResponses";
 
 function App() {
-  // eslint-ignore-next-line @typescript-eslint/no-explicit-any
-  const [dataFromParent, setDataFromParent] = useState<null |{ [key: string]: any }>(null)
+  const [orderData, setOrderData] = useState<OrderData>({
+    token: null,
+    data: null
+  })
+
+  const fetchOrderData = useCallback(async (orderId: string): Promise<InitialOrderResponse> => {
+    const result = await fetch(
+      `${appConfig.apiEndpoint}/wp-json/myplugin/v1/posts/${orderId}`,
+      { method: 'GET' }
+    )
+
+    if (!result.ok) {
+      console.error('An error happened on request to WP order')
+    }
+
+    return await result.json()
+  }, [])
 
   // Effects
   useEffect(() => {
-    window.parent.postMessage(
-      { type: 'QUESTIONNAIRE_IFRAME_READY' },
-      '*',
-    );
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('d');
 
-    const listener = (event: MessageEvent) => {
-      if (event.data.type === 'INITIAL_PAYLOAD') {
-        setDataFromParent({
-          paymentId: event.data.content.paymentId
+    if (orderId) {
+      fetchOrderData(orderId)
+        .then((res) => {
+          if (res?.status && res?.token) {
+            setOrderData({
+              data: orderId,
+              token: res?.token
+            })
+          } else {
+            console.error('An error happened on request to WP order')
+          }
         })
-      }
+        .catch(() => {
+          console.error('An error happened on request to WP order')
+        })
     }
-
-    window.addEventListener('message', listener)
-
-    return () => {
-      window.removeEventListener('message', listener)
-    }
-  }, [])
+  }, [fetchOrderData])
 
   // Renders
-  if (!dataFromParent) {
-    return <div>Insecure access attempt</div>
-  }
   return (
     <I18NextProvider>
       <ThemeProvider theme={theme}>
@@ -45,7 +61,7 @@ function App() {
           <CssBaseline />
 
           <CommonLayout>
-            <MainPage initData={dataFromParent} />
+            <MainPage orderData={orderData} />
           </CommonLayout>
         </GlobalErrorBoundaryProvider>
       </ThemeProvider>
