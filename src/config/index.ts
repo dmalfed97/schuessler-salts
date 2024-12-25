@@ -25,4 +25,11 @@ export const appConfig = {
 
   // Default settings
   defaultItemsCount: 3,
+
+  // Все ссылки тут
+  apiEndpoint: 'https://biosalts.ru',
+  privacyPolicyUrl: `https://biosalts.ru/politika-v-otnoshenii-obrabotki-personalnyh-dannyh/`,
+  personalDataAcceptanceUrl: `https://biosalts.ru/soglasie-posetitelya-sajta-na-obrabotku-personalnyh-dannyh/`,
+  xlsxUrl: `https://docs.google.com/spreadsheets/d/1V6u4y2-ctmQ_FdDtL_13nNnEnp6h1Qol/export?format=xlsx`,
+  completeAgainUrl: `https://biosalts.ru/catalog/soli-schuesslera/salts1_12/sol-schuesslera-1/`
 }

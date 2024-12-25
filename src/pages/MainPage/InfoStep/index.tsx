@@ -1,5 +1,5 @@
-import {memo, useEffect} from 'react'
-import {Button, Paper, Stack, Typography} from "@mui/material";
+import {memo, useEffect, useMemo, useState} from 'react'
+import {Button, FormGroup, Paper, Stack, Typography, FormControlLabel, Checkbox} from "@mui/material";
 import {useTranslation} from "react-i18next";
 import {FormProvider, SubmitHandler, useForm} from "react-hook-form";
 import {yupResolver} from '@hookform/resolvers/yup'
@@ -7,17 +7,24 @@ import {yupResolver} from '@hookform/resolvers/yup'
 import {MainPageSteps} from "../steps";
 import {PersonalInfoFormType, PersonalInfoValidationSchema} from "./validation";
 import {TextFieldWithController} from "../../../components/TextFieldWithController";
+import {OrderData} from "../../../types/orderData";
 
 interface InfoStepProps {
+  orderData: OrderData
   personalInfo: PersonalInfoFormType
   setPersonalInfo(info: PersonalInfoFormType): void
   setStep(newStep: MainPageSteps): void
 }
 
-const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo }: InfoStepProps) => {
+const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo, orderData }: InfoStepProps) => {
   const { t } = useTranslation()
 
+  const [privacyPolicyIsAccepted, setPrivacyPolicyIsAccepted] = useState<boolean>(true)
+  const [personalDataIsAccepted, setPersonalDataIsAccepted] = useState<boolean>(true)
+
   const methods = useForm<PersonalInfoFormType>({
+    mode: 'onChange',
+    reValidateMode: 'onChange',
     defaultValues: {
       firstName: '',
       secondName: '',
@@ -29,7 +36,7 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo }: InfoStepProps
     // @ts-expect-error yup error
     resolver: yupResolver(PersonalInfoValidationSchema)
   })
-  const { control, handleSubmit, reset } = methods
+  const { control, handleSubmit, reset, formState } = methods
 
   // Effects
   useEffect(() => {
@@ -42,6 +49,10 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo }: InfoStepProps
 
     setStep(MainPageSteps.CALC)
   }
+
+  const buttonIsDisabled = useMemo(() => {
+    return !orderData.token || !orderData.data || !privacyPolicyIsAccepted || !personalDataIsAccepted || !formState.isValid
+  }, [formState.isValid, orderData.data, orderData.token, personalDataIsAccepted, privacyPolicyIsAccepted])
 
   // Renders
   return (
@@ -105,8 +116,26 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo }: InfoStepProps
               />
             </Stack>
 
+            <FormGroup>
+              <FormControlLabel
+                control={<Checkbox
+                  checked={privacyPolicyIsAccepted}
+                  onChange={(_, checked) => setPrivacyPolicyIsAccepted(checked)}
+                />}
+                label={t('screens.main.form.privacyPolicyLabel')}
+              />
+
+              <FormControlLabel
+                control={<Checkbox
+                  checked={personalDataIsAccepted}
+                  onChange={(_, checked) => setPersonalDataIsAccepted((checked))}
+                />}
+                label={t('screens.main.form.personalDataAcceptanceLabel')}
+              />
+            </FormGroup>
+
             <Stack direction="row" justifyContent="flex-end">
-              <Button variant="contained" type="submit">
+              <Button variant="contained" type="submit" disabled={buttonIsDisabled}>
                 {t('button.continue')}
               </Button>
             </Stack>

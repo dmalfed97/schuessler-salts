@@ -12,6 +12,8 @@ import {ItemsMap, ItemType} from "../../types/items";
 import {InfoStep} from "./InfoStep";
 import {PersonalInfoFormType} from "./InfoStep/validation";
 import {GroupType} from "../../types/group";
+import {appConfig} from "../../config";
+import {OrderData} from "../../types/orderData";
 
 const initialPersonalInfoFormData = () => ({
   firstName: '',
@@ -23,16 +25,12 @@ const initialPersonalInfoFormData = () => ({
 })
 
 interface MainPageProps {
-  initData: {
-    // eslint-ignore-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any
-  }
+  orderData: OrderData
 }
 
-const MainPage = ({ initData }: MainPageProps) => {
+const MainPage = ({ orderData }: MainPageProps) => {
   const { i18n: { language } } = useTranslation()
 
-  const [xlsxUrl, setXlsxUrl] = useState<string | null>(null)
   const [step, setStep] = useState<MainPageSteps>(MainPageSteps.INFO)
   const [questions, setQuestions] = useState<QuestionsType>(new Map())
   const [itemsList, setItemsList] = useState<ItemsMap>(new Map())
@@ -43,7 +41,6 @@ const MainPage = ({ initData }: MainPageProps) => {
   // Loader
   const getInitialData = useCallback(async (url: string) => {
     const fetchData = async () => {
-      // const response = await fetch(`/locales/${language}/symptoms_data.xlsx`)
       const response = await fetch(url)
 
       const arrayBuffer = await response.arrayBuffer()
@@ -202,43 +199,24 @@ const MainPage = ({ initData }: MainPageProps) => {
   }, [language])
 
   // Effects
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sourceUrl = urlParams.get('source');
-
-    const getSheetId = (url: string) => {
-      const match = url.match(/\/d\/(.*?)(\/|$)/);
-
-      return match ? match[1] : null;
-    }
-
-    const docID = sourceUrl ? getSheetId(sourceUrl) : null
-
-    if (docID) {
-      setXlsxUrl(`https://docs.google.com/spreadsheets/d/${docID}/export?format=xlsx`);
-    }
-  }, [])
 
   useEffect(() => {
-    if (xlsxUrl) {
-      void getInitialData(xlsxUrl)
-    }
-  }, [getInitialData, xlsxUrl])
+    void getInitialData(appConfig.xlsxUrl)
+  }, [getInitialData])
 
   // Handlers
   const refreshData = useCallback(() => {
-    if (xlsxUrl) {
-      void getInitialData(xlsxUrl)
-    }
+    void getInitialData(appConfig.xlsxUrl)
 
     setPersonalInfo(initialPersonalInfoFormData())
-  }, [getInitialData, xlsxUrl])
+  }, [getInitialData])
 
   // Renders
   return (
     <Stack alignItems="stretch" gap={1.5}>
       {step === MainPageSteps.INFO && (
         <InfoStep
+          orderData={orderData}
           personalInfo={personalInfo}
           setPersonalInfo={setPersonalInfo}
           setStep={setStep}
@@ -257,7 +235,7 @@ const MainPage = ({ initData }: MainPageProps) => {
 
       {step === MainPageSteps.RESULTS && (
         <ResultsStep
-          initData={initData}
+          orderData={orderData}
           setStep={setStep}
           refresh={refreshData}
           questions={questions}
