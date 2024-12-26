@@ -125,7 +125,10 @@ const ResultsStep = memo(({
       `${appConfig.apiEndpoint}/wp-json/myplugin/v1/authors/${orderData.data}/?token=${orderData.token}`,
       {
         method: 'POST',
-        body: JSON.stringify(mappedResults)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(mappedResults),
       }
     )
 
