@@ -1,5 +1,5 @@
 import {memo, useEffect, useMemo, useState} from 'react'
-import {Button, FormGroup, Paper, Stack, Typography, FormControlLabel, Checkbox} from "@mui/material";
+import {Button, FormGroup, Paper, Stack, Typography, FormControlLabel, Checkbox, Link} from "@mui/material";
 import {useTranslation} from "react-i18next";
 import {FormProvider, SubmitHandler, useForm} from "react-hook-form";
 import {yupResolver} from '@hookform/resolvers/yup'
@@ -8,6 +8,7 @@ import {MainPageSteps} from "../steps";
 import {PersonalInfoFormType, PersonalInfoValidationSchema} from "./validation";
 import {TextFieldWithController} from "../../../components/TextFieldWithController";
 import {OrderData} from "../../../types/orderData";
+import {appConfig} from "../../../config";
 
 interface InfoStepProps {
   orderData: OrderData
@@ -122,7 +123,11 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo, orderData }: In
                   checked={privacyPolicyIsAccepted}
                   onChange={(_, checked) => setPrivacyPolicyIsAccepted(checked)}
                 />}
-                label={t('screens.main.form.privacyPolicyLabel')}
+                label={(
+                  <Link href={appConfig.privacyPolicyUrl} target="_blank">
+                    {t('screens.main.form.privacyPolicyLabel')}
+                  </Link>
+                )}
               />
 
               <FormControlLabel
@@ -130,7 +135,11 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo, orderData }: In
                   checked={personalDataIsAccepted}
                   onChange={(_, checked) => setPersonalDataIsAccepted((checked))}
                 />}
-                label={t('screens.main.form.personalDataAcceptanceLabel')}
+                label={(
+                  <Link href={appConfig.personalDataAcceptanceUrl} target="_blank">
+                    {t('screens.main.form.personalDataAcceptanceLabel')}
+                  </Link>
+                )}
               />
             </FormGroup>
 
