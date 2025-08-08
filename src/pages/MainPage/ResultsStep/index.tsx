@@ -312,7 +312,13 @@ const ResultsStep = memo(({
       )}
 
       <Stack direction="row" justifyContent="space-between">
-        <Button variant="contained" onClick={() => window.open(appConfig.completeAgainUrl, '_blank')}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            localStorage.removeItem(appConfig.savedDataStorageKey)
+            window.open(appConfig.completeAgainUrl, '_blank')
+          }}
+        >
           {t('button.calculateAgain')}
         </Button>
 

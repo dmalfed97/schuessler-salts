@@ -15,3 +15,22 @@ export type StepMapType = {
 }
 
 export type QuestionsType = Map<string, StepMapType>
+
+export type SerializedQuestionsType = Record<
+  string,
+  {
+    stepTitle: string | null;
+    blocks: Record<
+      string,
+      {
+        questions: Record<
+          string,
+          {
+            answer: boolean | null;
+            values: Record<string, number>;
+          }
+        >;
+      }
+    >;
+  }
+>

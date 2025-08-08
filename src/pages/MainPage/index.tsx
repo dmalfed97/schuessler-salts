@@ -1,6 +1,6 @@
 import {useEffect, useState, useCallback} from 'react'
 import {useTranslation} from "react-i18next";
-import {Stack} from "@mui/material";
+import {Button, Dialog, Stack, Typography} from "@mui/material";
 import {read, utils} from 'xlsx'
 
 import {MainPageSteps} from "./steps";
@@ -14,6 +14,9 @@ import {PersonalInfoFormType} from "./InfoStep/validation";
 import {GroupType} from "../../types/group";
 import {appConfig} from "../../config";
 import {OrderData} from "../../types/orderData";
+import {useMuiMediaQuery} from "../../hooks/useMuiMediaQuesry";
+import {deserializeQuestions} from "../../utils/_deserializeQuestions";
+import {serializeQuestions} from "../../utils/_serializeQuestions";
 
 const initialPersonalInfoFormData = () => ({
   firstName: '',
@@ -29,8 +32,11 @@ interface MainPageProps {
 }
 
 const MainPage = ({ orderData }: MainPageProps) => {
-  const { i18n: { language } } = useTranslation()
+  const { t } = useTranslation('common')
 
+  const { isSM } = useMuiMediaQuery()
+
+  const [openSavedDataModal, setOpenSavedDataModal] = useState<boolean>(false)
   const [step, setStep] = useState<MainPageSteps>(MainPageSteps.INFO)
   const [questions, setQuestions] = useState<QuestionsType>(new Map())
   const [itemsList, setItemsList] = useState<ItemsMap>(new Map())
@@ -196,13 +202,41 @@ const MainPage = ({ orderData }: MainPageProps) => {
       .catch((error) => {
         alert(error)
       })
-  }, [language])
+  }, [])
 
   // Effects
-
   useEffect(() => {
     void getInitialData(appConfig.xlsxUrl)
   }, [getInitialData])
+
+  useEffect(() => {
+    const previouslySavedData = localStorage.getItem(appConfig.savedDataStorageKey)
+
+    if (previouslySavedData) {
+      const parsedData = JSON.parse(previouslySavedData)
+
+      if (parsedData.personalInfo || parsedData.questions) {
+        setOpenSavedDataModal(true)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (Object.values(personalInfo).some((val) => val)) {
+        localStorage.setItem(appConfig.savedDataStorageKey, JSON.stringify({
+          personalInfo: JSON.stringify(personalInfo),
+          questions: serializeQuestions(questions),
+        }))
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [personalInfo, questions])
 
   // Handlers
   const refreshData = useCallback(() => {
@@ -210,6 +244,45 @@ const MainPage = ({ orderData }: MainPageProps) => {
 
     setPersonalInfo(initialPersonalInfoFormData())
   }, [getInitialData])
+
+  const parseSavedDataFromLocalStorage = () => {
+    // Восстановление из localStorage
+    const loadQuestionsFromStorage = (data: string | null): QuestionsType | null => {
+      if (!data) return null
+
+      try {
+        const obj = JSON.parse(data)
+
+        return deserializeQuestions(obj) as QuestionsType
+      } catch (e) {
+        console.error('Ошибка при восстановлении questions из localStorage:', e)
+        return null
+      }
+    }
+
+    setOpenSavedDataModal(false)
+    const previouslySavedData = localStorage.getItem(appConfig.savedDataStorageKey)
+
+    if (previouslySavedData) {
+      const tempObj = JSON.parse(previouslySavedData)
+
+      if (tempObj.personalInfo) {
+        setPersonalInfo(JSON.parse(tempObj.personalInfo))
+      }
+      if (tempObj.questions) {
+        const result = loadQuestionsFromStorage(tempObj.questions)
+
+        if (result) {
+          setQuestions(result)
+        }
+      }
+    }
+  }
+
+  const handleCloseSavedDataModal = () => {
+    setOpenSavedDataModal(false)
+    localStorage.removeItem(appConfig.savedDataStorageKey)
+  }
 
   // Renders
   return (
@@ -244,6 +317,32 @@ const MainPage = ({ orderData }: MainPageProps) => {
           personalInfo={personalInfo}
         />
       )}
+
+      <Dialog open={openSavedDataModal} onClose={handleCloseSavedDataModal}>
+        <Stack
+          gap={6}
+          alignItems="center"
+          style={{
+            backgroundColor: 'white',
+            padding: 16,
+            margin: 'auto',
+          }}
+        >
+          <Typography variant="body1" whiteSpace="pre-line">
+            {t('continueModal.text')}
+          </Typography>
+
+          <Stack alignSelf="center" direction={isSM ? 'row' : 'column'} gap={2}>
+            <Button variant="outlined" onClick={handleCloseSavedDataModal}>
+              {t('button.noBeginAgain')}
+            </Button>
+
+            <Button variant="contained" onClick={parseSavedDataFromLocalStorage}>
+              {t('button.yesContinue')}
+            </Button>
+          </Stack>
+        </Stack>
+      </Dialog>
     </Stack>
   )
 }

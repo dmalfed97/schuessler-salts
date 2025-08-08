@@ -11,6 +11,7 @@ export const appConfig = {
 
   // i18n
   langStorageKey: '_Lang', // _[projectName]Lang
+  savedDataStorageKey: '_questionnaire',
   defaultLanguage: Language.RU,
   languages: [
     { title: 'Русский', lang: Language.RU },
