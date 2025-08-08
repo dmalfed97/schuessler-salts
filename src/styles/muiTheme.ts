@@ -207,33 +207,6 @@ export const theme = createTheme({
         },
       },
     },
-    MuiSwitch: {
-      styleOverrides: {
-        root: {
-          borderRadius: 30 / 2,
-          width: 55,
-          height: 30,
-          padding: 0,
-        },
-        track: {
-          width: 55,
-          height: 30,
-        },
-        switchBase: {
-          padding: 0,
-          margin: 2,
-          width: 26,
-          height: 26,
-          '&.Mui-checked': {
-            transform: 'translateX(24px)',
-          },
-        },
-        thumb: {
-          width: 26,
-          height: 26,
-        },
-      },
-    },
     MuiFormHelperText: {
       styleOverrides: {
         root: {

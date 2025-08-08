@@ -1,14 +1,14 @@
-import {CssBaseline, ThemeProvider} from "@mui/material";
+import {CssBaseline} from "@mui/material";
 import {useCallback, useEffect, useState} from "react";
 
 import {I18NextProvider} from "./providers/I18Next";
 import {GlobalErrorBoundaryProvider} from "./providers/GlobalErrorBoundary";
 import {CommonLayout} from "./layouts/CommonLayout";
-import {theme} from "./styles/muiTheme";
 import {MainPage} from './pages/MainPage'
 import {OrderData} from "./types/orderData";
 import {appConfig} from "./config";
 import {InitialOrderResponse} from "./types/wpResponses";
+import {MuiProvider} from "./providers/MuiProvider";
 
 function App() {
   const [orderData, setOrderData] = useState<OrderData>({
@@ -40,7 +40,7 @@ function App() {
           if (res?.status && res?.token) {
             setOrderData({
               data: orderId,
-              token: res?.token
+              token: res?.token || null
             })
           } else {
             console.error('An error happened on request to WP order')
@@ -55,7 +55,7 @@ function App() {
   // Renders
   return (
     <I18NextProvider>
-      <ThemeProvider theme={theme}>
+      <MuiProvider>
         {/* @ts-expect-error TS творит херню */}
         <GlobalErrorBoundaryProvider>
           <CssBaseline />
@@ -64,7 +64,7 @@ function App() {
             <MainPage orderData={orderData} />
           </CommonLayout>
         </GlobalErrorBoundaryProvider>
-      </ThemeProvider>
+      </MuiProvider>
     </I18NextProvider>
   )
 }

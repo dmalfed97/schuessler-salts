@@ -1,6 +1,7 @@
 import * as Yup from 'yup'
+import dayjs from 'dayjs'
 
-const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
 const phoneRegExp = /^\+7\s*\(?(\d{3})\)?\s*(\d{3})[\s-]?(\d{2})[\s-]?(\d{2})$/
 
 export const PersonalInfoValidationSchema = Yup.object({
@@ -19,11 +20,10 @@ export const PersonalInfoValidationSchema = Yup.object({
       if (!value) return true;
 
       if (dateRegex.test(value)) {
-        const date = new Date(value);
-        return !isNaN(date.getTime()) && date.toISOString().startsWith(value);
-      } else {
-        return false
+        const date = dayjs(value, 'MM.DD.YYYY', true); // strict = true
+        return date.isValid();
       }
+      return false;
     }),
 })
 
