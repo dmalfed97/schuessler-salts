@@ -9,6 +9,7 @@ import {PersonalInfoFormType, PersonalInfoValidationSchema} from "./validation";
 import {TextFieldWithController} from "../../../components/TextFieldWithController";
 import {OrderData} from "../../../types/orderData";
 import {appConfig} from "../../../config";
+import {DatePickerWithController} from "../../../components/DatePickerWithController";
 
 interface InfoStepProps {
   orderData: OrderData
@@ -108,11 +109,10 @@ const InfoStep = memo(({ setStep, personalInfo, setPersonalInfo, orderData }: In
                 mask="+7 (999) 999-99-99"
               />
 
-              <TextFieldWithController
+              <DatePickerWithController
                 label={t('input.label.dateOfBirth')}
                 name="dateOfBirth"
                 hookFormProps={{control}}
-                type="date"
                 required
               />
             </Stack>
